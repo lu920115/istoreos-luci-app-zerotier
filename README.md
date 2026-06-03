@@ -1,20 +1,24 @@
 # istoreos-luci-app-zerotier
 
-iStoreOS 定制版 luci-app-zerotier，基于 iStoreOS 1.3.0-1 修改。
+iStoreOS 定制版 luci-app-zerotier，基于 iStoreOS 商店安装的 1.3.0-1 版本修改。
 
 ## 版本信息
 
 - 当前版本: **1.3.1-1**
-- 基础版本: iStoreOS 1.3.0-1
+- 基础版本: iStoreOS 1.3.0-1（从 iStore 商店安装）
 
-## 修改内容
+## 功能特点
 
-### v1.3.1-1
-1. **增加自建 ZeroTier 控制器支持**
-   - 新增 "Self-hosted Controller URL" 输入框，默认填入 `http://192.168.5.88:28000`
-   - 新增 "Save URL" 保存按钮，点击后保存URL到浏览器本地存储
-   - 新增 "Open Self-hosted Controller" 按钮，使用保存的URL跳转
-   - 不依赖固定IP，可灵活配置任意自建控制器地址
+1. **保持原有界面完全不变**
+   - TypedSection 表格形式的 Join Network（非 DynamicList）
+   - 支持添加/删除多个网络
+   - 每个网络可配置：Enabled、Network ID、Allow Managed、Allow Global、Allow Default、Allow DNS
+
+2. **增加自建 ZeroTier 控制器支持**
+   - "Self-hosted Controller URL" 输入框，默认填入 `http://192.168.5.88:28000`
+   - "SAVE" 保存按钮，点击后保存 URL 到浏览器 localStorage
+   - "OPEN SELF-HOSTED CONTROLLER" 跳转按钮，使用保存的 URL 打开
+   - 位置在 Zerotier.com 按钮下方，Join Network 表格上方
 
 ## 安装方法
 
@@ -29,7 +33,7 @@ cp /usr/lib/lua/luci/model/cbi/zerotier/settings.lua /tmp/settings.lua.bak
 # 3. 替换文件
 cp /tmp/settings.lua /usr/lib/lua/luci/model/cbi/zerotier/settings.lua
 
-# 4. 清除缓存
+# 4. 清除缓存并重启 Web 服务
 rm -f /tmp/luci-indexcache
 rm -rf /tmp/luci-modulecache
 /etc/init.d/nginx restart
@@ -50,8 +54,8 @@ luci-app-zerotier/
 └── root/
     ├── etc/init.d/luci_zerotier          # 启动脚本
     ├── etc/hotplug.d/net/25-luci-zerotier
-    ├── usr/libexec/zerotier-nat          # NAT辅助脚本
-    ├── usr/libexec/zerotier-dns          # DNS辅助脚本
+    ├── usr/libexec/zerotier-nat          # NAT 辅助脚本
+    ├── usr/libexec/zerotier-dns          # DNS 辅助脚本
     └── usr/share/nftables.d/             # 防火墙规则
 ```
 
