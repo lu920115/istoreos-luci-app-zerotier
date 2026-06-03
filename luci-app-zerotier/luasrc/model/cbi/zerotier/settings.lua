@@ -25,11 +25,14 @@ e = t:option(DummyValue, "opennewwindow", translate("<input type=\"button\" clas
 e.description = translate("Create or manage your zerotier network, and auth clients who could access")
 
 e = t:option(Value, "selfhosted_url", translate("Self-hosted Controller URL"))
-e.placeholder = "http://your-controller-ip:port"
-e.default = ""
+e.placeholder = "http://192.168.5.88:28000"
+e.default = "http://192.168.5.88:28000"
 e.rmempty = true
 
-e = t:option(DummyValue, "selfhosted", translate("<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"Open Self-hosted Controller\" onclick=\"var el=document.getElementById('cbid.zerotier.sample_config.selfhosted_url');var url=(el&&el.value)?el.value:'http://192.168.5.88:28000';window.open(url)\" />"))
+e = t:option(DummyValue, "save_selfhosted", translate("<input type=\"button\" class=\"cbi-button cbi-button-save\" value=\"Save URL\" onclick=\"var el=document.getElementById('cbid.zerotier.sample_config.selfhosted_url');var url=el.value||'http://192.168.5.88:28000';localStorage.setItem('zt_selfhosted_url',url);alert('URL saved: '+url);\" />"))
+e.description = translate("Click to save the self-hosted controller URL")
+
+e = t:option(DummyValue, "selfhosted", translate("<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"Open Self-hosted Controller\" onclick=\"var url=localStorage.getItem('zt_selfhosted_url')||document.getElementById('cbid.zerotier.sample_config.selfhosted_url').value||'http://192.168.5.88:28000';window.open(url)\" />"))
 e.description = translate("Click to open your self-hosted ZeroTier controller management page")
 
 return a
