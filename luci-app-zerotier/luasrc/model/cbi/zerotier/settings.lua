@@ -20,18 +20,20 @@ e = t:option(DummyValue, "opennewwindow" ,
 	translate("<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"Zerotier.com\" onclick=\"window.open('https://my.zerotier.com/network')\" />"),
 	translate("Create or manage your zerotier network, and auth clients who could access"))
 
--- Self-hosted Controller Section (moved before Join Network)
+-- Self-hosted Controller URL input
 e = t:option(Value, "selfhosted_url", translate("Self-hosted Controller URL"))
-e.placeholder = "http://192.168.5.88:28000"
 e.default = "http://192.168.5.88:28000"
+e.placeholder = "http://192.168.5.88:28000"
 e.rmempty = true
 
-e = t:option(DummyValue, "save_selfhosted", 
-	translate("<input type=\"button\" class=\"cbi-button cbi-button-save\" value=\"SAVE\" onclick=\"var el=document.querySelector('input[name=\\'cbid.zerotier.sample_config.selfhosted_url\\']'); if(!el){el=document.getElementById('cbid.zerotier.sample_config.selfhosted_url');} var url=el?el.value:''; if(!url){url='http://192.168.5.88:28000';} localStorage.setItem('zt_selfhosted_url',url); alert('URL saved: '+url);\" />"),
-	translate("Click SAVE to save the self-hosted controller URL"))
+-- SAVE button (event handled in zerotier_status.htm via delegation)
+e = t:option(DummyValue, "_save_btn",
+	translate([[<input type="button" class="cbi-button cbi-button-save" value="SAVE" id="zt_save_url_btn" style="background:#5b7cf9;color:#fff;border:none;" />]]),
+	translate("Click SAVE to temporarily save the URL. You must click Save & Apply at the bottom right to permanently save."))
 
-e = t:option(DummyValue, "selfhosted", 
-	translate("<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"OPEN SELF-HOSTED CONTROLLER\" onclick=\"var url=localStorage.getItem('zt_selfhosted_url'); if(!url){var el=document.querySelector('input[name=\\'cbid.zerotier.sample_config.selfhosted_url\\']'); if(!el){el=document.getElementById('cbid.zerotier.sample_config.selfhosted_url');} url=el?el.value:'http://192.168.5.88:28000';} window.open(url);\" />"),
+-- OPEN SELF-HOSTED CONTROLLER button
+e = t:option(DummyValue, "_open_btn",
+	translate([[<input type="button" class="cbi-button cbi-button-apply" value="OPEN SELF-HOSTED CONTROLLER" id="zt_open_controller_btn" style="background:#5b7cf9;color:#fff;border:none;" />]]),
 	translate("Click to open your self-hosted ZeroTier controller management page"))
 
 -- Join Network Section
