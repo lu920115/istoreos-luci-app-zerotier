@@ -26,7 +26,8 @@ jobs:
       - name: Download OpenWrt SDK
         run: |
           wget -q "https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          tar --zstd -xf openwrt-sdk-*.tar.zst
+          zstd -d openwrt-sdk-*.tar.zst -o sdk.tar
+          tar xf sdk.tar
           mv openwrt-sdk-* sdk
 
       - name: Setup feed and build
@@ -74,7 +75,8 @@ jobs:
       - name: Download OpenWrt SDK
         run: |
           wget -q "${{ matrix.sdk_url }}" -O sdk.tar.zst || exit 1
-          tar --zstd -xf sdk.tar.zst
+          zstd -d sdk.tar.zst -o sdk.tar
+          tar xf sdk.tar
           mv openwrt-sdk-* sdk
 
       - name: Clone OpenWrt packages feed
