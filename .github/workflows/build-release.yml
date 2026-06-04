@@ -45,7 +45,7 @@ jobs:
   build-zerotier:
     name: Build ZeroTier Backend
     runs-on: ubuntu-latest
-    if: github.event.inputs.zerotier_version != '' || startsWith(github.ref, 'refs/tags/v')
+    if: github.event.inputs.zerotier_version != ''
     strategy:
       matrix:
         arch:
@@ -109,7 +109,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [build-luci, build-zerotier]
+    needs: [build-luci]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
     steps:
