@@ -34,7 +34,7 @@ jobs:
       - name: Setup feed and build
         run: |
           cd sdk
-          ./scripts/feeds update base packages
+          ./scripts/feeds update base packages luci
           ./scripts/feeds install libncurses libpthread libstdcpp
           mkdir -p package/luci-app-zerotier
           cp -r $GITHUB_WORKSPACE/luci-app-zerotier/* package/luci-app-zerotier/
