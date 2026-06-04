@@ -30,8 +30,8 @@ iStoreOS 定制版 luci-app-zerotier，基于 iStoreOS 商店安装的 1.3.0-1 �
 
 从 [GitHub Releases](https://github.com/lu920115/istoreos-luci-app-zerotier/releases) 下载 .ipk 文件，然后：
 ```bash
-wget https://github.com/lu920115/istoreos-luci-app-zerotier/releases/download/v1.3.2-2/luci-app-zerotier_1.3.2-2_all.ipk
-opkg install luci-app-zerotier_1.3.2-2_all.ipk
+wget https://github.com/lu920115/istoreos-luci-app-zerotier/releases/download/v1.3.2-4/luci-app-zerotier_1.3.2-r3_all.ipk
+opkg install luci-app-zerotier_1.3.2-r3_all.ipk
 ```
 
 > 注意：本包不含 zerotier 后端程序。如果系统没有 zerotier，安装后会自动提示你先去 iStore 商店安装 ZeroTier。
