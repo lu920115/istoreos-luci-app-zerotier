@@ -18,90 +18,92 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build IPK
-        uses: openwrt/gh-action-sdk@main
-        env:
-          ARCH: x86_64-24.10
-          FEEDNAME: packages_ci
-          PACKAGES: luci-app-zerotier
-          NO_REFRESH_CHECK: true
-        with:
-          feeds: |
-            src-link packages_ci $GITHUB_WORKSPACE
-
-      - name: Rename IPK
+      - name: Install dependencies
         run: |
-          cd bin/packages/x86_64/packages_ci/
-          for f in luci-app-zerotier_*.ipk; do
-            mv "$f" "../../${f/packages_ci/all}"
-          done
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev libncursesw5-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3
+
+      - name: Download OpenWrt SDK
+        run: |
+          wget -q "https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          tar --zstd -xf openwrt-sdk-*.tar.zst
+          mv openwrt-sdk-* sdk
+
+      - name: Setup feed and build
+        run: |
+          cd sdk
+          ./scripts/feeds update base packages
+          ./scripts/feeds install libncurses libpthread libstdcpp
+          mkdir -p package/luci-app-zerotier
+          cp -r $GITHUB_WORKSPACE/luci-app-zerotier/* package/luci-app-zerotier/
+          make defconfig
+          make package/luci-app-zerotier/compile V=s -j$(nproc)
+
+      - name: Collect IPK
+        run: |
+          mkdir -p output
+          find sdk/bin/packages -name 'luci-app-zerotier_*.ipk' -exec cp {} output/ \;
+          ls -la output/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: luci-app-zerotier
-          path: bin/luci-app-zerotier_*.ipk
+          path: output/*.ipk
 
   build-zerotier:
     name: Build ZeroTier Backend
     runs-on: ubuntu-latest
     if: github.event.inputs.zerotier_version != ''
     strategy:
+      fail-fast: false
       matrix:
-        arch:
-          - x86_64-24.10
-          - aarch64_cortex-a53-24.10
-          - arm_cortex-a7_neon-vfpv4-24.10
+        include:
+          - arch: x86_64
+            sdk_url: https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+          - arch: aarch64
+            sdk_url: https://downloads.openwrt.org/releases/24.10.4/targets/rockchip/armv8/openwrt-sdk-24.10.4-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev libncursesw5-dev zlib1g-dev gawk git gettext libssl-dev xsltproc rsync wget unzip python3 zstd
+
       - name: Download OpenWrt SDK
         run: |
-          SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          if [[ "${{ matrix.arch }}" == aarch64* ]]; then
-            SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/rockchip/armv8/openwrt-sdk-24.10.4-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
-          elif [[ "${{ matrix.arch }}" == arm_cortex-a7* ]]; then
-            SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/sunxi/cortexa7/openwrt-sdk-24.10.4-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
-          fi
-          wget -q "$SDK_URL" -O sdk.tar.zst || echo "SDK download failed for ${{ matrix.arch }}"
-
-      - name: Extract SDK
-        if: hashFiles('sdk.tar.zst') != ''
-        run: |
-          sudo apt-get update && sudo apt-get install -y zstd
+          wget -q "${{ matrix.sdk_url }}" -O sdk.tar.zst || exit 1
           tar --zstd -xf sdk.tar.zst
           mv openwrt-sdk-* sdk
 
       - name: Clone OpenWrt packages feed
-        if: hashFiles('sdk.tar.zst') != ''
         run: |
           cd sdk
           ./scripts/feeds update packages
           ./scripts/feeds install zerotier
 
       - name: Update ZeroTier version
-        if: github.event.inputs.zerotier_version != '' && hashFiles('sdk.tar.zst') != ''
         run: |
           VER="${{ github.event.inputs.zerotier_version }}"
           SDK_FILE="sdk/feeds/packages/net/zerotier/Makefile"
           sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$VER/" "$SDK_FILE"
-          # Update hash (will fail if hash is wrong, but we'll see)
           echo "Updated ZeroTier to $VER"
+          grep "PKG_VERSION" "$SDK_FILE" || true
 
       - name: Compile ZeroTier
-        if: hashFiles('sdk.tar.zst') != ''
         run: |
           cd sdk
+          make defconfig
           make package/zerotier/compile V=s -j$(nproc) || make package/zerotier/compile V=s -j1
 
       - name: Collect IPK
-        if: hashFiles('sdk.tar.zst') != ''
         run: |
           mkdir -p output
           find sdk/bin/packages -name 'zerotier_*.ipk' -exec cp {} output/ \;
+          ls -la output/
 
       - name: Upload artifact
-        if: hashFiles('sdk.tar.zst') != ''
         uses: actions/upload-artifact@v4
         with:
           name: zerotier-${{ matrix.arch }}
@@ -115,8 +117,8 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
+          name: luci-app-zerotier
           path: artifacts
-          merge-multiple: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
