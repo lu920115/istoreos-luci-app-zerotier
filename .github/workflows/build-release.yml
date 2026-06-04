@@ -90,13 +90,22 @@ jobs:
           ./scripts/feeds update packages
           ./scripts/feeds install zerotier
 
-      - name: Update ZeroTier version
+      - name: Update ZeroTier to latest
         run: |
-          VER="${{ github.event.inputs.zerotier_version }}"
-          SDK_FILE="sdk/feeds/packages/net/zerotier/Makefile"
-          sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$VER/" "$SDK_FILE"
-          echo "Updated ZeroTier to $VER"
-          grep "PKG_VERSION" "$SDK_FILE" || true
+          # 下载 OpenWrt master 分支的完整 zerotier 目录（Makefile + patches）
+          rm -rf sdk/feeds/packages/net/zerotier
+          mkdir -p sdk/feeds/packages/net/zerotier
+          for f in Makefile; do
+            curl -sL "https://raw.githubusercontent.com/openwrt/packages/master/net/zerotier/$f" -o "sdk/feeds/packages/net/zerotier/$f"
+          done
+          # 下载补丁
+          mkdir -p sdk/feeds/packages/net/zerotier/patches
+          for p in $(curl -sL "https://github.com/openwrt/packages/tree/master/net/zerotier/patches" | grep -o 'patches/[^"]*\.patch' | sort -u); do
+            fname=$(basename "$p")
+            curl -sL "https://raw.githubusercontent.com/openwrt/packages/master/net/zerotier/patches/$fname" -o "sdk/feeds/packages/net/zerotier/patches/$fname"
+          done
+          echo "Updated ZeroTier to master branch version"
+          grep "PKG_VERSION" sdk/feeds/packages/net/zerotier/Makefile || true
 
       - name: Compile ZeroTier
         run: |
