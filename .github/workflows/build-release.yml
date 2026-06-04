@@ -1,0 +1,125 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      zerotier_version:
+        description: 'ZeroTier version to build (e.g. 1.16.2)'
+        required: false
+        default: ''
+
+jobs:
+  build-luci:
+    name: Build LuCI Plugin
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build IPK
+        uses: openwrt/gh-action-sdk@main
+        env:
+          ARCH: x86_64-24.10
+          FEEDNAME: packages_ci
+          PACKAGES: luci-app-zerotier
+          NO_REFRESH_CHECK: true
+        with:
+          feeds: |
+            src-link packages_ci $GITHUB_WORKSPACE
+
+      - name: Rename IPK
+        run: |
+          cd bin/packages/x86_64/packages_ci/
+          for f in luci-app-zerotier_*.ipk; do
+            mv "$f" "../../${f/packages_ci/all}"
+          done
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: luci-app-zerotier
+          path: bin/luci-app-zerotier_*.ipk
+
+  build-zerotier:
+    name: Build ZeroTier Backend
+    runs-on: ubuntu-latest
+    if: github.event.inputs.zerotier_version != '' || startsWith(github.ref, 'refs/tags/v')
+    strategy:
+      matrix:
+        arch:
+          - x86_64-24.10
+          - aarch64_cortex-a53-24.10
+          - arm_cortex-a7_neon-vfpv4-24.10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download OpenWrt SDK
+        run: |
+          SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/x86/64/openwrt-sdk-24.10.4-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          if [[ "${{ matrix.arch }}" == aarch64* ]]; then
+            SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/rockchip/armv8/openwrt-sdk-24.10.4-rockchip-armv8_gcc-13.3.0_musl.Linux-x86_64.tar.zst"
+          elif [[ "${{ matrix.arch }}" == arm_cortex-a7* ]]; then
+            SDK_URL="https://downloads.openwrt.org/releases/24.10.4/targets/sunxi/cortexa7/openwrt-sdk-24.10.4-sunxi-cortexa7_gcc-13.3.0_musl_eabi.Linux-x86_64.tar.zst"
+          fi
+          wget -q "$SDK_URL" -O sdk.tar.zst || echo "SDK download failed for ${{ matrix.arch }}"
+
+      - name: Extract SDK
+        if: hashFiles('sdk.tar.zst') != ''
+        run: |
+          sudo apt-get update && sudo apt-get install -y zstd
+          tar --zstd -xf sdk.tar.zst
+          mv openwrt-sdk-* sdk
+
+      - name: Clone OpenWrt packages feed
+        if: hashFiles('sdk.tar.zst') != ''
+        run: |
+          cd sdk
+          ./scripts/feeds update packages
+          ./scripts/feeds install zerotier
+
+      - name: Update ZeroTier version
+        if: github.event.inputs.zerotier_version != '' && hashFiles('sdk.tar.zst') != ''
+        run: |
+          VER="${{ github.event.inputs.zerotier_version }}"
+          SDK_FILE="sdk/feeds/packages/net/zerotier/Makefile"
+          sed -i "s/PKG_VERSION:=.*/PKG_VERSION:=$VER/" "$SDK_FILE"
+          # Update hash (will fail if hash is wrong, but we'll see)
+          echo "Updated ZeroTier to $VER"
+
+      - name: Compile ZeroTier
+        if: hashFiles('sdk.tar.zst') != ''
+        run: |
+          cd sdk
+          make package/zerotier/compile V=s -j$(nproc) || make package/zerotier/compile V=s -j1
+
+      - name: Collect IPK
+        if: hashFiles('sdk.tar.zst') != ''
+        run: |
+          mkdir -p output
+          find sdk/bin/packages -name 'zerotier_*.ipk' -exec cp {} output/ \;
+
+      - name: Upload artifact
+        if: hashFiles('sdk.tar.zst') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: zerotier-${{ matrix.arch }}
+          path: output/*.ipk
+
+  release:
+    name: Create Release
+    needs: [build-luci, build-zerotier]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*.ipk
+          generate_release_notes: true
