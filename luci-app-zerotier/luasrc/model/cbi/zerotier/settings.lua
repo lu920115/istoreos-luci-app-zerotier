@@ -2,7 +2,8 @@ local a, t, e
 
 a = Map("zerotier", translate("ZeroTier"),
 	translate("Zerotier is an open source, cross-platform and easy to use virtual LAN") ..
-	'<br><span style="color:red">此界面包版本luci-app-zerotier_1.3.2-r4_all.ipk，需要配合插件主程序使用zerotier_1.16.0-r2，github地址：<a href="https://github.com/lu920115/istoreos-luci-app-zerotier" target="_blank">https://github.com/lu920115/istoreos-luci-app-zerotier</a></span>')
+	'<br><span style="color:red">此界面包版本luci-app-zerotier_1.3.2-r4_all.ipk，需要配合插件主程序使用zerotier_1.16.0-r2，github地址：<a href="https://github.com/lu920115/istoreos-luci-app-zerotier" target="_blank">https://github.com/lu920115/istoreos-luci-app-zerotier</a></span>' ..
+	'<br><span style="color:red">使用docker自建自托管控制器请使用镜像docker pull ghcr.io/lu920115/zerotier-planet:v1.16.2.1（或latest），github地址：<a href="https://github.com/lu920115/zerotier-planet-from-ztncui" target="_blank">https://github.com/lu920115/zerotier-planet-from-ztncui</a></span>')
 a:section(SimpleSection).template  = "zerotier/zerotier_status"
 
 t = a:section(NamedSection, "sample_config", "zerotier")
