@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-zerotier
 PKG_VERSION:=1.3.2
-PKG_RELEASE:=3
+PKG_RELEASE:=4
 
 LUCI_TITLE:=LuCI for ZeroTier
 LUCI_DEPENDS:=
