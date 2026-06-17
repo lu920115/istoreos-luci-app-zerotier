@@ -8,6 +8,9 @@ LUCI_TITLE:=LuCI for ZeroTier
 LUCI_DEPENDS:=
 LUCI_PKGARCH:=all
 
+# Enable i18n
+LUCI_LANGUAGES:=zh-cn
+
 define Package/luci-app-zerotier/conffiles
 /etc/config/zerotier
 endef

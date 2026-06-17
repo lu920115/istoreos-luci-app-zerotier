@@ -1,0 +1,62 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid "ZeroTier"
+msgstr "ZeroTier"
+
+msgid "Zerotier is an open source, cross-platform and easy to use virtual LAN"
+msgstr "Zerotier 是一款开源、跨平台且易于使用的虚拟局域网工具"
+
+msgid "Enabled"
+msgstr "启用"
+
+msgid "Auto NAT Clients"
+msgstr "自动 NAT 客户端"
+
+msgid "Allow zerotier clients access your LAN network"
+msgstr "允许 Zerotier 客户端访问您的局域网"
+
+msgid "Create or manage your zerotier network, and auth clients who could access"
+msgstr "创建或管理您的 Zerotier 网络，并授权可访问的客户端"
+
+msgid "Self-hosted Controller URL"
+msgstr "自托管控制器地址"
+
+msgid "Click SAVE to temporarily save the URL. You must click Save & Apply at the bottom right to permanently save."
+msgstr "点击 SAVE 临时保存地址。您必须点击右下角的保存并应用才能永久保存。"
+
+msgid "Click to open your self-hosted ZeroTier controller management page"
+msgstr "点击打开您的自托管 ZeroTier 控制器管理页面"
+
+msgid "Join Network"
+msgstr "加入网络"
+
+msgid "ZeroTier Network ID"
+msgstr "ZeroTier 网络 ID"
+
+msgid "Allow Managed"
+msgstr "允许管理"
+
+msgid "Allow Global"
+msgstr "允许全局"
+
+msgid "Allow Default"
+msgstr "允许默认"
+
+msgid "Allow DNS"
+msgstr "允许 DNS"
+
+msgid "Base Setting"
+msgstr "基本设置"
+
+msgid "Interface Info"
+msgstr "接口信息"
+
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
+
+msgid "Collecting data..."
+msgstr "正在收集数据..."
